@@ -137,8 +137,10 @@ class GROWI:
         res = self.post("pages.update", data, use_cookie=use_cookie)
         return res.json()
 
-    def delete_page(self, page_path, recursive=True, complete=False, use_cookie=False):
+    def delete_page(self, page_path, recursive=False, complete=False, use_cookie=False):
         if not use_cookie or not self.cookie:
+            return {"ok": False}
+        if page_path == "/":
             return {"ok": False}
         page_json = self.get_page(page_path)
 
@@ -251,6 +253,8 @@ class GROWI:
         for i in image_list:
             page_body = page_body.replace(i[0], i[1])
 
+        if page_path == "/":
+            page_path = "root"
         with open(
             os.path.join(target_path, os.path.basename(page_path) + ".md"),
             "w",
