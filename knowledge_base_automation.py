@@ -4,6 +4,20 @@ import os
 import re
 
 
+def read_file(path):
+    for code in ["utf_8", "shift_jis"]:
+        data=""
+        f = open(path, "r", encoding=code)
+        try:
+            data = f.read()
+        except UnicodeDecodeError:
+            pass
+        f.close()
+        if data:
+            return data
+    return "None"
+
+
 class GROWI:
     api_url = "%s://%s/_api/%s"
 
@@ -203,7 +217,10 @@ class GROWI:
         return res.json()
 
     def create_markdown_page(self, page_path, md_path, relative_image_path, grant=4):
-        self.create_page(page_path, "markdown", grant=grant)
+        md_data = read_file(md_path)
+        if not md_data:
+            return {"ok": False}
+        self.create_page(page_path, md_data, grant=grant)
 
         image_list = []
 
@@ -219,10 +236,6 @@ class GROWI:
                         upload_json["attachment"]["filePathProxied"],
                     ]
                 )
-
-        f = open(md_path, "r", encoding="utf-8")
-        md_data = f.read()
-        f.close()
 
         for i in image_list:
             md_data = md_data.replace(i[0], i[1])
@@ -422,7 +435,10 @@ class Knowledge:
         return res.json()
 
     def create_markdown_page(self, page_title, md_path, relative_image_path, grant=1):
-        created_json = self.create_page(page_title, "# markdown", grant=grant)
+        md_data = read_file(md_path)
+        if not md_data:
+            return {"msg": "failed"}
+        created_json = self.create_page(page_title, md_data, grant=grant)
 
         image_list = []
 
@@ -440,10 +456,6 @@ class Knowledge:
                         upload_json["files"][0]["url"],
                     ]
                 )
-
-        f = open(md_path, "r", encoding="utf-8")
-        md_data = f.read()
-        f.close()
 
         for i in image_list:
             md_data = md_data.replace(i[0], i[1])
