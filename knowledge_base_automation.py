@@ -6,7 +6,7 @@ import re
 
 def read_file(path):
     for code in ["utf_8", "shift_jis"]:
-        data=""
+        data = ""
         f = open(path, "r", encoding=code)
         try:
             data = f.read()
@@ -87,17 +87,11 @@ class GROWI:
         url = "%s://%s%s" % (self.proto, self.ip_addr, page_path)
         res = requests.get(url, headers={"Cookie": self.cookie}, verify=self.verify)
 
-        start = res.text.find('data-csrftoken="')
-        if start < 0:
-            return ""
-        start += len('data-csrftoken="')
-        end = res.text[start:].find('"')
-        if end < 0:
-            return ""
-        end = start + end
+        re_result = re.findall('data-csrftoken="([^"]*)"', res.text, re.S)
 
-        csrf = res.text[start:end]
-        return csrf
+        if len(re_result):
+            return re_result[0]
+        return ""
 
     def get_page(self, page_path, use_cookie=False):
         res = self.get("pages.get", params={"path": page_path}, use_cookie=use_cookie)
