@@ -213,7 +213,7 @@ class GROWI:
                 )
                 image_list.append(
                     [
-                        os.path.join(relative_image_path, image_name),
+                        os.path.join(relative_image_path, image_name).replace("\\", "/"),
                         upload_json["attachment"]["filePathProxied"],
                     ]
                 )
@@ -433,7 +433,7 @@ class Knowledge:
                 )
                 image_list.append(
                     [
-                        os.path.join(relative_image_path, image_name),
+                        os.path.join(relative_image_path, image_name).replace("\\", "/"),
                         upload_json["files"][0]["url"],
                     ]
                 )
