@@ -2,20 +2,7 @@ import requests
 import json
 import os
 import re
-
-
-def read_file(path):
-    for code in ["utf_8", "shift_jis"]:
-        data = ""
-        f = open(path, "r", encoding=code)
-        try:
-            data = f.read()
-        except UnicodeDecodeError:
-            pass
-        f.close()
-        if data:
-            return data
-    return "None"
+import util
 
 
 class GROWI:
@@ -211,7 +198,7 @@ class GROWI:
         return res.json()
 
     def create_markdown_page(self, page_path, md_path, relative_image_path, grant=4):
-        md_data = read_file(md_path)
+        md_data = util.read_file(md_path)
         if not md_data:
             return {"ok": False}
         self.create_page(page_path, md_data, grant=grant)
@@ -429,7 +416,7 @@ class Knowledge:
         return res.json()
 
     def create_markdown_page(self, page_title, md_path, relative_image_path, grant=1):
-        md_data = read_file(md_path)
+        md_data = util.read_file(md_path)
         if not md_data:
             return {"msg": "failed"}
         created_json = self.create_page(page_title, md_data, grant=grant)
