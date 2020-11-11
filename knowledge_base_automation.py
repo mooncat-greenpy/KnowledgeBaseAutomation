@@ -198,7 +198,7 @@ class GROWI:
         return res.json()
 
     def create_markdown_page(self, page_path, md_path, relative_image_path, grant=4):
-        md_data = util.read_file(md_path)
+        md_data, char_code = util.read_file(md_path)
         if not md_data:
             return {"ok": False}
         self.create_page(page_path, md_data, grant=grant)
@@ -213,7 +213,9 @@ class GROWI:
                 )
                 image_list.append(
                     [
-                        os.path.join(relative_image_path, image_name).replace("\\", "/"),
+                        os.path.join(relative_image_path, image_name).replace(
+                            "\\", "/"
+                        ),
                         upload_json["attachment"]["filePathProxied"],
                     ]
                 )
@@ -416,7 +418,7 @@ class Knowledge:
         return res.json()
 
     def create_markdown_page(self, page_title, md_path, relative_image_path, grant=1):
-        md_data = util.read_file(md_path)
+        md_data, char_code = util.read_file(md_path)
         if not md_data:
             return {"msg": "failed"}
         created_json = self.create_page(page_title, md_data, grant=grant)
@@ -433,7 +435,9 @@ class Knowledge:
                 )
                 image_list.append(
                     [
-                        os.path.join(relative_image_path, image_name).replace("\\", "/"),
+                        os.path.join(relative_image_path, image_name).replace(
+                            "\\", "/"
+                        ),
                         upload_json["files"][0]["url"],
                     ]
                 )

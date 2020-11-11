@@ -1,5 +1,3 @@
-
-
 def read_file(path):
     for code in [
         "utf_8",
@@ -96,6 +94,5 @@ def read_file(path):
             pass
         f.close()
         if data:
-            return data
-    return "None"
-
+            return data, code
+    return "None", "None"
