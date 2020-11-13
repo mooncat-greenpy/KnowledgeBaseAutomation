@@ -137,7 +137,7 @@ class GROWI:
             return {"ok": False}
         if page_path == "/":
             return {"ok": False}
-        page_json = self.get_page(page_path)
+        page_json = self.get_page(page_path, use_cookie=use_cookie)
 
         page_id = page_json["page"]["_id"]
         revision_id = page_json["page"]["revision"]["_id"]
@@ -153,7 +153,7 @@ class GROWI:
         }
         if complete:
             data["completely"] = complete
-        res = self.post("pages.remove", data, use_cookie=True)
+        res = self.post("pages.remove", data, use_cookie=use_cookie)
 
         return res.json()
 
@@ -164,20 +164,24 @@ class GROWI:
         res = requests.get(url, headers={"Cookie": self.cookie}, verify=self.verify)
         return res.content
 
-    def send_attachments(self, page_path, file_path, content_type="*/*"):
+    def send_attachments(
+        self, page_path, file_path, content_type="*/*", use_cookie=False
+    ):
         params = {"fileSize": os.path.getsize(file_path)}
-        res = self.get("attachments.limit", params=params)
+        res = self.get("attachments.limit", params=params, use_cookie=use_cookie)
         if not res.json()["isUploadable"]:
             return {"ok": False}
 
-        page_json = self.get_page(page_path)
+        page_json = self.get_page(page_path, use_cookie=use_cookie)
         page_id = page_json["page"]["_id"]
 
         data = {"page_id": page_id}
         files = {
             "file": (os.path.basename(file_path), open(file_path, "rb"), content_type)
         }
-        res = self.post("attachments.add", data, files=files, use_data=True)
+        res = self.post(
+            "attachments.add", data, files=files, use_data=True, use_cookie=use_cookie
+        )
         return res.json()
 
     def delete_attachments(self, attachment_id):
@@ -197,11 +201,25 @@ class GROWI:
         res = self.get("me/user-group-relations", use_cookie=use_cookie)
         return res.json()
 
-    def create_markdown_page(self, page_path, md_path, relative_image_path, grant=4):
+    def create_markdown_page(
+        self,
+        page_path,
+        md_path,
+        relative_image_path,
+        grant=4,
+        group_name="",
+        use_cookie=False,
+    ):
         md_data, char_code = util.read_file(md_path)
         if not md_data:
             return {"ok": False}
-        self.create_page(page_path, md_data, grant=grant)
+        self.create_page(
+            page_path,
+            md_data,
+            grant=grant,
+            group_name=group_name,
+            use_cookie=use_cookie,
+        )
 
         image_list = []
 
@@ -209,7 +227,9 @@ class GROWI:
         if os.path.exists(image_dir):
             for image_name in os.listdir(image_dir):
                 upload_json = self.send_attachments(
-                    page_path, os.path.join(image_dir, image_name)
+                    page_path,
+                    os.path.join(image_dir, image_name),
+                    use_cookie=use_cookie,
                 )
                 image_list.append(
                     [
@@ -223,10 +243,18 @@ class GROWI:
         for i in image_list:
             md_data = md_data.replace(i[0], i[1])
 
-        return self.update_page(page_path, md_data, grant=grant)
+        return self.update_page(
+            page_path,
+            md_data,
+            grant=grant,
+            group_name=group_name,
+            use_cookie=use_cookie,
+        )
 
-    def download_markdown_page(self, page_path, target_path="testmd/"):
-        page_json = self.get_page(page_path)
+    def download_markdown_page(
+        self, page_path, target_path="testmd/", use_cookie=False
+    ):
+        page_json = self.get_page(page_path, use_cookie=use_cookie)
         page_body = page_json["page"]["revision"]["body"]
 
         image_dir = os.path.join(target_path, "img")
@@ -342,7 +370,7 @@ class Knowledge:
     #   0 Public
     #   1 Private
     #   2 Protect
-    def create_page(self, page_title, page_body, groups=None, users=None, grant=1):
+    def create_page(self, page_title, page_body, grant=1, groups=None, users=None):
         if not groups:
             groups = []
         if not users:
@@ -354,7 +382,7 @@ class Knowledge:
         return res.json()
 
     def update_page(
-        self, page_id, page_title, page_body, groups=None, users=None, grant=1
+        self, page_id, page_title, page_body, grant=1, groups=None, users=None
     ):
         if not groups:
             groups = []
@@ -417,11 +445,15 @@ class Knowledge:
         res = self.get("groups")
         return res.json()
 
-    def create_markdown_page(self, page_title, md_path, relative_image_path, grant=1):
+    def create_markdown_page(
+        self, page_title, md_path, relative_image_path, grant=1, groups=None, users=None
+    ):
         md_data, char_code = util.read_file(md_path)
         if not md_data:
             return {"msg": "failed"}
-        created_json = self.create_page(page_title, md_data, grant=grant)
+        created_json = self.create_page(
+            page_title, md_data, grant=grant, groups=groups, users=users
+        )
 
         image_list = []
 
@@ -445,7 +477,14 @@ class Knowledge:
         for i in image_list:
             md_data = md_data.replace(i[0], i[1])
 
-        self.update_page(created_json["id"], page_title, md_data, grant=grant)
+        self.update_page(
+            created_json["id"],
+            page_title,
+            md_data,
+            grant=grant,
+            groups=groups,
+            users=users,
+        )
         return created_json
 
     def download_markdown_page(self, page_id, target_path="testmd/"):
